@@ -14,7 +14,8 @@ A browser-first soccer simulation game focused on making decisions, simulating m
 - TypeScript for the simulation engine and shared game logic.
 - React for the web interface.
 - Phaser for 2D match visualization when needed.
-- Node.js API with PostgreSQL for persistence once the core simulation is proven.
+- Next.js for the UI and API route handlers.
+- PostgreSQL for persistence once the core simulation is proven.
 - Web-first delivery, with an installable PWA and a possible native iOS client later.
 
 ## Current First Step
