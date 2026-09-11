@@ -25,3 +25,16 @@ simulateMatch(homeTeam, awayTeam, seed)
 ```
 
 The prototype should help us discover whether the rules and gameplay loop are fun before we build the API or database around them.
+
+## Run the prototype
+
+```bash
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000` and use **Simulate match** to generate a score. The
+page invokes the framework-independent simulation module through a server action;
+the same module can be imported by a future API route without moving game logic.
+
+Run the simulation checks with `npm test`.
