@@ -8,7 +8,7 @@
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
-    "test": "node --import tsx --test src/domain/match.test.ts",
+    "test": "node --import tsx --test src/simulation/match.test.ts src/domain/match.test.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

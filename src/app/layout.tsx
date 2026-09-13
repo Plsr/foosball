@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Foosball",
-  description: "A browser-first soccer simulation game.",
+  title: "Football Simulator",
+  description: "A simple Bundesliga match simulation proof of concept.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
