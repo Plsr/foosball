@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "next": "latest",
+    "next": "^16.3.5",
     "react": "latest",
     "react-dom": "latest"
   },

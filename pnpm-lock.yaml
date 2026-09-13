@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       next:
-        specifier: latest
+        specifier: ^16.3.5
         version: 16.3.5(@types/node@24.13.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react:
         specifier: latest
