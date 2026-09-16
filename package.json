@@ -6,13 +6,17 @@
   "packageManager": "pnpm@9.15.9",
   "scripts": {
     "build": "next build",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate --config drizzle.migrate.config.ts",
     "dev": "next dev",
     "start": "next start",
     "test": "node --import tsx --test src/simulation/match.test.ts src/domain/match.test.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "drizzle-orm": "0.44.5",
     "next": "^16.3.5",
+    "postgres": "3.4.7",
     "react": "latest",
     "react-dom": "latest"
   },
@@ -21,6 +25,8 @@
     "@types/node": "^24.5.2",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
+    "dotenv": "16.4.7",
+    "drizzle-kit": "0.31.4",
     "postcss": "^8.5.28",
     "tailwindcss": "^4",
     "tsx": "^4.19.2",
