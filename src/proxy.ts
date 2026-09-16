@@ -19,7 +19,17 @@ export async function proxy(request: NextRequest) {
       return NextResponse.next();
     }
 
-    return NextResponse.redirect(new URL("/login?error=configuration", request.url));
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { error: "Authentication is not configured" },
+        { status: 503 },
+      );
+    }
+
+    return NextResponse.redirect(
+      new URL("/login?error=configuration", request.url),
+      303,
+    );
   }
 
   const auth = createRequestClient(request);
@@ -28,9 +38,15 @@ export async function proxy(request: NextRequest) {
   } = await auth.supabase.auth.getUser();
 
   if (!user && !isPublic) {
+    if (pathname.startsWith("/api/")) {
+      return auth.applyTo(
+        NextResponse.json({ error: "Authentication required" }, { status: 401 }),
+      );
+    }
+
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
-    return auth.applyTo(NextResponse.redirect(loginUrl));
+    return auth.applyTo(NextResponse.redirect(loginUrl, 303));
   }
 
   if (user && pathname === "/login") {
