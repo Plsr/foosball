@@ -43,13 +43,22 @@ Run the simulation checks with `pnpm test`.
 
 ## Database
 
-Copy `.env.example` to `.env.local` and set `DATABASE_URL` to the Supabase
-transaction-pooler connection string. The server-rendered home page reads the
-seeded `teams` table through Drizzle; database credentials never reach the
-browser.
+Copy `.env.example` to `.env.local`. Use a least-privileged `foosball_app`
+connection through Supabase's transaction pooler for `DATABASE_URL`; reserve the
+owner connection in `DATABASE_MIGRATION_URL` for migrations. Only
+`DATABASE_URL` belongs in the Vercel runtime environment. The server-rendered
+home page reads the seeded `teams` table through Drizzle, so database
+credentials never reach the browser.
 
 After changing `src/db/schema.ts`, generate a migration with:
 
 ```bash
 pnpm db:generate
+```
+
+Apply committed migrations once before deploying a version that depends on
+them:
+
+```bash
+pnpm db:migrate
 ```

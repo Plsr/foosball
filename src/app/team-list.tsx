@@ -24,7 +24,7 @@ export async function TeamList() {
 
       <ul className="grid gap-3 min-[601px]:grid-cols-2">
         {teams.map((team) => (
-          <li key={team.id} className="rounded-sm border border-line bg-white/[0.025] p-4">
+          <li key={team.slug} className="rounded-sm border border-line bg-white/[0.025] p-4">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="font-bold">{team.name}</h3>
