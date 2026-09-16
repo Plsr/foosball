@@ -4,16 +4,21 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "build": "next build",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate --config drizzle.migrate.config.ts",
     "dev": "next dev",
     "start": "next start",
-    "test": "node --import tsx --test src/simulation/match.test.ts src/domain/match.test.ts",
+    "test": "node --import tsx --test",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.116.0",
     "drizzle-orm": "0.44.5",
     "next": "^16.3.5",
     "postgres": "3.4.7",
