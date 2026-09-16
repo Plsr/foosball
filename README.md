@@ -15,7 +15,7 @@ A browser-first soccer simulation game focused on making decisions, simulating m
 - React for the web interface.
 - Phaser for 2D match visualization when needed.
 - Next.js for the UI and API route handlers.
-- PostgreSQL for persistence once the core simulation is proven.
+- Supabase Postgres for persistence, accessed through Drizzle ORM.
 - Web-first delivery, with an installable PWA and a possible native iOS client later.
 
 ## Current First Step
@@ -40,3 +40,16 @@ page invokes the framework-independent simulation module through a server action
 the same module can be imported by a future API route without moving game logic.
 
 Run the simulation checks with `pnpm test`.
+
+## Database
+
+Copy `.env.example` to `.env.local` and set `DATABASE_URL` to the Supabase
+transaction-pooler connection string. The server-rendered home page reads the
+seeded `teams` table through Drizzle; database credentials never reach the
+browser.
+
+After changing `src/db/schema.ts`, generate a migration with:
+
+```bash
+pnpm db:generate
+```

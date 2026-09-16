@@ -1,4 +1,7 @@
 import { Simulator } from "./simulator";
+import { TeamList } from "./team-list";
+
+export const dynamic = "force-dynamic";
 
 export default function Home() {
   return (
@@ -18,6 +21,7 @@ export default function Home() {
         </span>
       </nav>
       <Simulator />
+      <TeamList />
       <footer className="text-center font-mono text-[10px] leading-none tracking-[0.08em] text-footer uppercase">
         Built to test the model, not predict the weekend.
       </footer>
