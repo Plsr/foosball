@@ -1,10 +1,19 @@
-DO $$
-BEGIN
-  CREATE ROLE foosball_reader NOLOGIN;
-EXCEPTION
-  WHEN duplicate_object THEN NULL;
-END
-$$;
+CREATE ROLE foosball_reader
+  NOLOGIN
+  NOSUPERUSER
+  NOCREATEDB
+  NOCREATEROLE
+  NOREPLICATION
+  NOBYPASSRLS;
+--> statement-breakpoint
+CREATE ROLE foosball_app
+  LOGIN
+  INHERIT
+  NOSUPERUSER
+  NOCREATEDB
+  NOCREATEROLE
+  NOREPLICATION
+  NOBYPASSRLS;
 --> statement-breakpoint
 GRANT USAGE ON SCHEMA public TO foosball_reader;
 --> statement-breakpoint
@@ -15,3 +24,5 @@ CREATE POLICY "foosball_reader_can_read_teams"
   FOR SELECT
   TO foosball_reader
   USING (true);
+--> statement-breakpoint
+GRANT foosball_reader TO foosball_app;

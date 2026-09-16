@@ -50,13 +50,34 @@ owner connection in `DATABASE_MIGRATION_URL` for migrations. Only
 home page reads the seeded `teams` table through Drizzle, so database
 credentials never reach the browser.
 
+For a new Supabase project, fill in the owner connection first and apply the
+committed migrations:
+
+```bash
+pnpm db:migrate
+```
+
+The migrations create a `foosball_app` login without a password and grant it
+the least-privileged `foosball_reader` role. Connect with `psql` using the owner
+connection from `DATABASE_MIGRATION_URL`, then set the runtime password once
+with the interactive command:
+
+```text
+\password foosball_app
+```
+
+The command prompts for the password without putting it in SQL or shell history.
+Use that password in `DATABASE_URL`, percent-encoding special characters only
+in the connection URL. Never commit the real password or add
+`DATABASE_MIGRATION_URL` to Vercel.
+
 After changing `src/db/schema.ts`, generate a migration with:
 
 ```bash
 pnpm db:generate
 ```
 
-Apply committed migrations once before deploying a version that depends on
+Apply new committed migrations once before deploying a version that depends on
 them:
 
 ```bash
