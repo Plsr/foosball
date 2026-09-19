@@ -13,6 +13,7 @@ const contextFiles = sourceFiles.filter((file) => file.endsWith(".context.ts"));
 const serviceSet = new Set(serviceFiles);
 const repositorySet = new Set(repositoryFiles);
 const contextSet = new Set(contextFiles);
+const serviceFreeConsumers = new Set(["src/app/api/health/route.ts"]);
 const importsByFile = new Map(
   sourceFiles.map((file) => [file, readImports(file).flatMap((specifier) => resolveImport(file, specifier))]),
 );
@@ -26,8 +27,13 @@ for (const [file, imports] of importsByFile) {
   const importedContexts = imports.filter((dependency) => contextSet.has(dependency));
   const importedSourceInfrastructure = imports.filter(isSourceInfrastructure);
 
-  if (isProductionConsumer(file) && importedServices.length > 1) {
-    errors.push(`${display(file)} imports more than one service: ${importedServices.map(display).join(", ")}`);
+  if (isProductionConsumer(file)) {
+    const expectedServices = serviceFreeConsumers.has(display(file)) ? 0 : 1;
+    if (importedServices.length !== expectedServices) {
+      errors.push(
+        `${display(file)} must import ${expectedServices} service modules; found ${importedServices.length}`,
+      );
+    }
   }
 
   for (const service of importedServices) {

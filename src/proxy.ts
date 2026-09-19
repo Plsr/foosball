@@ -1,5 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { applyAuthEffects } from "@/app/auth-response";
+import {
+  applyAuthCookiesToRequest,
+  applyAuthEffects,
+} from "@/app/auth-response";
 import { authorizeRequest } from "@/data/services/request-auth.service";
 
 export async function proxy(request: NextRequest) {
@@ -24,6 +27,7 @@ export async function proxy(request: NextRequest) {
     return applyAuthEffects(response, result.effects);
   }
 
+  applyAuthCookiesToRequest(request, result.effects);
   return applyAuthEffects(NextResponse.next({ request }), result.effects);
 }
 

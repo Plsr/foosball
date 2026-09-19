@@ -1,8 +1,8 @@
 import type { AuthEffects, RequestCookie } from "@/data/auth";
 import {
-  createRequestContext,
-  type RequestContext,
-} from "@/data/contexts/request.context";
+  createAuthRepository,
+  type AuthRepository,
+} from "@/data/repositories/auth.repository";
 import { getSafeNextPath } from "@/lib/auth/redirect";
 
 export type StartGitHubSignInResult = {
@@ -11,13 +11,14 @@ export type StartGitHubSignInResult = {
 };
 
 type StartGitHubSignInDependencies = {
-  createRequestContext(input: {
-    cookies: readonly RequestCookie[];
-  }): Pick<RequestContext, "getAuthEffects" | "startGitHubSignIn">;
+  createAuthRepository(cookies: readonly RequestCookie[]): Pick<
+    AuthRepository,
+    "getEffects" | "startGitHubSignIn"
+  >;
 };
 
 const productionDependencies: StartGitHubSignInDependencies = {
-  createRequestContext,
+  createAuthRepository,
 };
 
 export async function startGitHubSignIn(
@@ -28,17 +29,17 @@ export async function startGitHubSignIn(
   },
   dependencies: StartGitHubSignInDependencies = productionDependencies,
 ): Promise<StartGitHubSignInResult> {
-  const context = dependencies.createRequestContext(input);
+  const auth = dependencies.createAuthRepository(input.cookies);
   const callbackUrl = new URL("/auth/callback", input.origin);
 
   if (input.next) {
     callbackUrl.searchParams.set("next", getSafeNextPath(input.next));
   }
 
-  const oauthUrl = await context.startGitHubSignIn(callbackUrl.toString());
+  const oauthUrl = await auth.startGitHubSignIn(callbackUrl.toString());
   return {
     destination:
       oauthUrl ?? new URL("/login?error=oauth_start", input.origin).toString(),
-    effects: context.getAuthEffects(),
+    effects: auth.getEffects(),
   };
 }

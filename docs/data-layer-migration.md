@@ -1,6 +1,6 @@
 # Data-layer migration path
 
-**Status:** Draft
+**Status:** Implemented
 
 ## Approach
 
@@ -11,6 +11,10 @@ as its request path moves behind a service interface.
 
 Each production consumer receives its own service module. No migration step shares
 a service between a page, route, action, or proxy, even temporarily.
+
+The enforcement ratchet was implemented by applying strict rules to new data-layer
+directories first, then enabling repository-wide restrictions in the final step.
+No legacy exceptions remain.
 
 The migration does not combine the two existing match simulators, change UI or HTTP
 contracts, or introduce base repositories or a dependency-injection framework.

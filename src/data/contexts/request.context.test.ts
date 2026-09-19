@@ -9,13 +9,13 @@ test("resolves the current viewer only once per request context", async () => {
     { cookies: [] },
     {
       createAuthRepository: () => ({
-        completeGitHubSignIn: async () => false,
         getCurrentViewer: async () => {
           lookups += 1;
           return viewer;
         },
         getEffects: () => ({ cookies: [], headers: [] }),
         isConfigured: () => true,
+        completeGitHubSignIn: async () => false,
         signOut: async () => undefined,
         startGitHubSignIn: async () => null,
       }),

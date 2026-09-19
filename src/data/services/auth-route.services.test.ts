@@ -18,8 +18,8 @@ test("starts GitHub sign-in with a safe callback URL", async () => {
       next: "/career?season=2",
     },
     {
-      createRequestContext: () => ({
-        getAuthEffects: () => effects,
+      createAuthRepository: () => ({
+        getEffects: () => effects,
         startGitHubSignIn: async (value: string) => {
           redirectTo = value;
           return "https://github.com/login/oauth/authorize";
@@ -42,8 +42,8 @@ test("returns to login when GitHub sign-in cannot start", async () => {
   const result = await startGitHubSignIn(
     { cookies: [], origin: "https://app.example.com", next: null },
     {
-      createRequestContext: () => ({
-        getAuthEffects: () => effects,
+      createAuthRepository: () => ({
+        getEffects: () => effects,
         startGitHubSignIn: async () => null,
       }),
     },
@@ -64,9 +64,9 @@ test("completes GitHub sign-in and preserves auth effects", async () => {
       origin: "https://app.example.com",
     },
     {
-      createRequestContext: () => ({
+      createAuthRepository: () => ({
         completeGitHubSignIn: async () => true,
-        getAuthEffects: () => effects,
+        getEffects: () => effects,
       }),
     },
   );
@@ -86,9 +86,9 @@ test("returns to login when the callback exchange fails", async () => {
       origin: "https://app.example.com",
     },
     {
-      createRequestContext: () => ({
+      createAuthRepository: () => ({
         completeGitHubSignIn: async () => false,
-        getAuthEffects: () => effects,
+        getEffects: () => effects,
       }),
     },
   );
@@ -104,8 +104,8 @@ test("signs out and redirects to login", async () => {
   const result = await signOut(
     { cookies: [], origin: "https://app.example.com" },
     {
-      createRequestContext: () => ({
-        getAuthEffects: () => effects,
+      createAuthRepository: () => ({
+        getEffects: () => effects,
         signOut: async () => {
           signedOut = true;
         },

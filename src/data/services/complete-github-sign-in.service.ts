@@ -1,8 +1,8 @@
 import type { AuthEffects, RequestCookie } from "@/data/auth";
 import {
-  createRequestContext,
-  type RequestContext,
-} from "@/data/contexts/request.context";
+  createAuthRepository,
+  type AuthRepository,
+} from "@/data/repositories/auth.repository";
 import { getSafeNextPath } from "@/lib/auth/redirect";
 
 export type CompleteGitHubSignInResult = {
@@ -11,13 +11,14 @@ export type CompleteGitHubSignInResult = {
 };
 
 type CompleteGitHubSignInDependencies = {
-  createRequestContext(input: {
-    cookies: readonly RequestCookie[];
-  }): Pick<RequestContext, "completeGitHubSignIn" | "getAuthEffects">;
+  createAuthRepository(cookies: readonly RequestCookie[]): Pick<
+    AuthRepository,
+    "completeGitHubSignIn" | "getEffects"
+  >;
 };
 
 const productionDependencies: CompleteGitHubSignInDependencies = {
-  createRequestContext,
+  createAuthRepository,
 };
 
 export async function completeGitHubSignIn(
@@ -29,9 +30,9 @@ export async function completeGitHubSignIn(
   },
   dependencies: CompleteGitHubSignInDependencies = productionDependencies,
 ): Promise<CompleteGitHubSignInResult> {
-  const context = dependencies.createRequestContext(input);
+  const auth = dependencies.createAuthRepository(input.cookies);
   const completed = input.code
-    ? await context.completeGitHubSignIn(input.code)
+    ? await auth.completeGitHubSignIn(input.code)
     : false;
   const destination = completed
     ? new URL(getSafeNextPath(input.next), input.origin)
@@ -39,6 +40,6 @@ export async function completeGitHubSignIn(
 
   return {
     destination: destination.toString(),
-    effects: context.getAuthEffects(),
+    effects: auth.getEffects(),
   };
 }

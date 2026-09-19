@@ -60,17 +60,16 @@ export function createAuthRepository(
     async getCurrentViewer() {
       if (!isSupabaseConfigured()) return null;
 
-      const { data, error } = await getClient().auth.getClaims();
-      if (error || !data) return null;
+      const { data, error } = await getClient().auth.getUser();
+      if (error || !data.user) return null;
 
-      const { claims } = data;
-      const userMetadata = claims.user_metadata;
+      const { user } = data;
       return {
-        id: claims.sub,
-        email: typeof claims.email === "string" ? claims.email : null,
+        id: user.id,
+        email: user.email ?? null,
         userName:
-          userMetadata && typeof userMetadata.user_name === "string"
-            ? userMetadata.user_name
+          typeof user.user_metadata.user_name === "string"
+            ? user.user_metadata.user_name
             : null,
       };
     },
