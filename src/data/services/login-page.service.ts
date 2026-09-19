@@ -8,7 +8,7 @@ export type LoginPageData = {
 };
 
 type LoginPageDependencies = {
-  isAuthConfigured(): boolean;
+  isAuthConfigured: typeof isAuthConfigured;
 };
 
 const productionDependencies: LoginPageDependencies = {

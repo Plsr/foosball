@@ -1,8 +1,5 @@
 import type { RequestCookie } from "@/data/auth";
-import {
-  getCurrentViewer,
-  type CurrentViewerResult,
-} from "@/data/contexts/request.context";
+import { getCurrentViewer } from "@/data/contexts/request.context";
 import {
   TeamRepository,
   type TeamRecord,
@@ -23,9 +20,7 @@ export type HomePageResult =
   | { status: "unauthenticated" };
 
 type HomePageDependencies = {
-  getCurrentViewer(input: {
-    cookies: readonly RequestCookie[];
-  }): Promise<CurrentViewerResult>;
+  getCurrentViewer: typeof getCurrentViewer;
   listTeams(): Promise<TeamRecord[]>;
 };
 

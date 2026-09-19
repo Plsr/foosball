@@ -2,7 +2,6 @@ import type { AuthEffects, RequestCookie } from "@/data/auth";
 import {
   getCurrentViewer,
   isAuthConfigured,
-  type CurrentViewerResult,
 } from "@/data/contexts/request.context";
 
 export type RequestAuthResult =
@@ -21,10 +20,8 @@ export type RequestAuthResult =
     };
 
 type RequestAuthDependencies = {
-  getCurrentViewer(input: {
-    cookies: readonly RequestCookie[];
-  }): Promise<CurrentViewerResult>;
-  isAuthConfigured(): boolean;
+  getCurrentViewer: typeof getCurrentViewer;
+  isAuthConfigured: typeof isAuthConfigured;
 };
 
 const productionDependencies: RequestAuthDependencies = {
