@@ -8,10 +8,10 @@ Application data access and preparation will live under `src/data`. The dependen
 flow is one-way:
 
 ```text
-pages / route handlers / server actions
-                  |
-                  v
-       data/services/*.service.ts
+one framework consumer
+          |
+          v
+one dedicated data/services/*.service.ts
          |          |         |
          v          |         v
     contexts -------+    domain logic
@@ -41,10 +41,13 @@ shared, request-scoped concerns such as resolving the currently logged-in user.
    request-scoped data, that concern belongs in a focused context object instead.
    For example, a request context can fetch and cache the currently logged-in user
    so individual services do not duplicate that work.
-4. Each page imports from at most one service module and calls it once to load the
-   page. A service module may expose more than one operation when the same page has
-   related server actions.
-5. Route handlers and server actions follow the same one-service-module rule.
+4. Consumers and services have a one-to-one mapping. Every data-using page, route
+   handler, server action, or proxy imports exactly one dedicated service module.
+   That service module is imported by exactly one production consumer. A consumer
+   with no data use, such as a static health route, imports no service.
+5. A service is named and shaped for its sole consumer. It is never reused by a
+   second consumer, even when the use cases initially look similar. Shared behavior
+   belongs in contexts, repositories, or pure domain modules.
 6. Presentational components do not fetch data. They receive service results, or
    smaller values derived from those results, through props. They may submit a form
    to a thin server action, but that action delegates its use case to one service.
@@ -57,11 +60,13 @@ shared, request-scoped concerns such as resolving the currently logged-in user.
    responses, redirects, cookies, and rendering JSX. Domain rules remain in pure
    domain modules and may be called by services.
 
-“One service” means one imported service **module**, not one global service for the
-whole application and not necessarily one function. Services should be organized
-around a page or use case rather than around a database table. For example,
-`home-page.service.ts` may obtain the viewer and teams from two repositories and
-return one `HomePageData` value.
+“One service” means one dedicated service **module** for one framework consumer.
+For example, `home-page.service.ts` serves only `app/page.tsx`; the related
+`runSimulation` server action uses a different service module.
+
+This one-to-one mapping makes the impact of an interface change predictable: only
+the mapped consumer can require downstream adaptation. A service should normally
+expose one primary use-case operation plus its consumer-specific result types.
 
 ## Proposed layout
 
@@ -79,7 +84,8 @@ src/
       user.repository.ts
     services/
       home-page.service.ts
-      match-api.service.ts
+      run-home-simulation.service.ts
+      simulate-match-api.service.ts
   domain/
     match.ts
   db/
@@ -106,7 +112,6 @@ export type HomePageData = {
 };
 
 export async function getHomePageData(): Promise<HomePageData>;
-export async function simulateHomePageMatch(): Promise<SimulationResult>;
 ```
 
 `HomePageData` is deliberately a view model, not a database model. If the page does
@@ -125,9 +130,10 @@ We should add linting in two layers:
     outside `src/data/repositories`;
   - services and repositories cannot be imported by client components;
   - repositories cannot import other repositories.
-- Add a small architecture check for the rule that ordinary lint configuration
-  cannot express cleanly: every `page.tsx`, route handler, and server action imports
-  at most one `*.service` module. Run it with the normal lint/CI command.
+- Add a small architecture check for the rules that ordinary lint configuration
+  cannot express cleanly: every data-using production consumer imports exactly one
+  `*.service` module, and every service module has exactly one production consumer.
+  Service tests are excluded from the consumer count. Run the check in normal CI.
 
 Linting can enforce who may depend on whom. It cannot determine whether a service
 returns the minimum meaningful data. We will support that rule with explicit
