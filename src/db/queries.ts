@@ -1,6 +1,6 @@
-import { asc } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { getDatabase } from "./client";
-import { teams } from "./schema";
+import { leagues, teams } from "./schema";
 
 export async function getTeams() {
   return getDatabase()
@@ -10,7 +10,10 @@ export async function getTeams() {
       city: teams.city,
       stadium: teams.stadium,
       founded: teams.founded,
+      rating: teams.rating,
+      league: leagues.name,
     })
     .from(teams)
+    .innerJoin(leagues, eq(teams.leagueId, leagues.id))
     .orderBy(asc(teams.name));
 }

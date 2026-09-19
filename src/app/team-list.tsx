@@ -31,6 +31,9 @@ export async function TeamList() {
                 <p className="mt-1 text-sm text-muted">
                   {team.city} · {team.stadium}
                 </p>
+                <p className="mt-1 font-mono text-[10px] tracking-[0.08em] text-note uppercase">
+                  {team.league} · Rating {team.rating}
+                </p>
               </div>
               <span className="font-mono text-[10px] tracking-[0.08em] text-note uppercase">
                 Est. {team.founded}
