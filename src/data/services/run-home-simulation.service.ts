@@ -1,7 +1,7 @@
 import type { RequestCookie } from "@/data/auth";
 import {
-  createRequestContext,
-  type RequestContext,
+  getCurrentViewer,
+  type CurrentViewerResult,
 } from "@/data/contexts/request.context";
 import {
   simulateMatch,
@@ -13,14 +13,14 @@ export type HomeSimulationResult =
   | { status: "unauthenticated" };
 
 type HomeSimulationDependencies = {
-  createRequestContext(input: {
+  getCurrentViewer(input: {
     cookies: readonly RequestCookie[];
-  }): Pick<RequestContext, "getCurrentViewer">;
+  }): Promise<CurrentViewerResult>;
   simulateMatch(): MatchResult;
 };
 
 const productionDependencies: HomeSimulationDependencies = {
-  createRequestContext,
+  getCurrentViewer,
   simulateMatch,
 };
 
@@ -28,8 +28,7 @@ export async function runHomeSimulation(
   input: { cookies: readonly RequestCookie[] },
   dependencies: HomeSimulationDependencies = productionDependencies,
 ): Promise<HomeSimulationResult> {
-  const context = dependencies.createRequestContext(input);
-  const viewer = await context.getCurrentViewer();
+  const { viewer } = await dependencies.getCurrentViewer(input);
   if (!viewer) return { status: "unauthenticated" };
 
   return { status: "ready", simulation: dependencies.simulateMatch() };

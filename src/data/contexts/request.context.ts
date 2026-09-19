@@ -1,47 +1,18 @@
 import type { AuthEffects, RequestCookie, Viewer } from "@/data/auth";
-import {
-  AuthRepository,
-  type AuthRepositoryResult,
-} from "@/data/repositories/auth.repository";
+import { AuthRepository } from "@/data/repositories/auth.repository";
 
-export type RequestContext = {
-  getAuthEffects(): AuthEffects;
-  getCurrentViewer(): Promise<Viewer | null>;
-  isAuthConfigured(): boolean;
+export type CurrentViewerResult = {
+  viewer: Viewer | null;
+  effects: AuthEffects;
 };
 
-type RequestContextDependencies = {
-  getCurrentViewer(input: {
-    cookies: readonly RequestCookie[];
-  }): Promise<AuthRepositoryResult<Viewer | null>>;
-  isAuthConfigured(): boolean;
-};
+export function isAuthConfigured(): boolean {
+  return AuthRepository.isConfigured();
+}
 
-const productionDependencies: RequestContextDependencies = {
-  getCurrentViewer: AuthRepository.getCurrentViewer,
-  isAuthConfigured: AuthRepository.isConfigured,
-};
-
-export function createRequestContext(
+export async function getCurrentViewer(
   input: { cookies: readonly RequestCookie[] },
-  dependencies: RequestContextDependencies = productionDependencies,
-): RequestContext {
-  let viewer: Promise<Viewer | null> | undefined;
-  const effects: AuthEffects = { cookies: [], headers: [] };
-
-  return {
-    getAuthEffects: () => ({
-      cookies: [...effects.cookies],
-      headers: [...effects.headers],
-    }),
-    getCurrentViewer() {
-      viewer ??= dependencies.getCurrentViewer(input).then((result) => {
-        effects.cookies.push(...result.effects.cookies);
-        effects.headers.push(...result.effects.headers);
-        return result.value;
-      });
-      return viewer;
-    },
-    isAuthConfigured: dependencies.isAuthConfigured,
-  };
+): Promise<CurrentViewerResult> {
+  const result = await AuthRepository.getCurrentViewer(input);
+  return { viewer: result.value, effects: result.effects };
 }

@@ -1,7 +1,4 @@
-import {
-  createRequestContext,
-  type RequestContext,
-} from "@/data/contexts/request.context";
+import { isAuthConfigured } from "@/data/contexts/request.context";
 import { getSafeNextPath } from "@/lib/auth/redirect";
 
 export type LoginPageData = {
@@ -11,11 +8,11 @@ export type LoginPageData = {
 };
 
 type LoginPageDependencies = {
-  createRequestContext(input: { cookies: [] }): Pick<RequestContext, "isAuthConfigured">;
+  isAuthConfigured(): boolean;
 };
 
 const productionDependencies: LoginPageDependencies = {
-  createRequestContext,
+  isAuthConfigured,
 };
 
 const errorMessages: Record<string, string> = {
@@ -28,11 +25,10 @@ export function getLoginPageData(
   input: { error?: string; next?: string },
   dependencies: LoginPageDependencies = productionDependencies,
 ): LoginPageData {
-  const context = dependencies.createRequestContext({ cookies: [] });
   const next = getSafeNextPath(input.next ?? null);
 
   return {
-    configured: context.isAuthConfigured(),
+    configured: dependencies.isAuthConfigured(),
     errorMessage: input.error ? errorMessages[input.error] : undefined,
     signInAction:
       next === "/" ? "/auth/sign-in" : `/auth/sign-in?next=${encodeURIComponent(next)}`,

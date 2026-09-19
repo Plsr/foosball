@@ -26,8 +26,8 @@ one dedicated data/services/*.service.ts
 A service file is the public interface of a data module. It owns a consumer use
 case: it coordinates repositories and domain logic, handles data-related decisions,
 and returns a purpose-built result. Repository files are internal adapters for a
-specific data source. Context objects are internal service-layer collaborators for
-shared, request-scoped concerns such as resolving the currently logged-in user.
+specific data source. Context modules expose simple functions for shared,
+request-scoped concerns such as resolving the currently logged-in user.
 Repositories are non-instantiable classes with throwing constructors and static
 operations. Consumers call those operations directly (for example,
 `TeamRepository.listTeams()`); repositories do not expose setup or factory functions.
@@ -37,15 +37,15 @@ operation and returned effects accompany its result.
 ### Rules
 
 1. Only the service layer may import repository files. This includes service files
-   and their internal context objects; contexts are not exposed to consumers.
+   and their internal context modules; contexts are not exposed to consumers.
 2. Only repository files may import data-source infrastructure such as database
    clients, schemas, and Supabase client helpers. Repositories do not import one
    another; the service layer composes them. Low-level infrastructure may use its
    source SDK, but is not an application-facing interface.
 3. Services never import other services. If services need the same behavior or
-   request-scoped data, that concern belongs in a focused context object instead.
-   For example, a request context can fetch and cache the currently logged-in user
-   so individual services do not duplicate that work.
+   request-scoped data, that concern belongs in focused context functions instead.
+   For example, a request context function can resolve the currently logged-in user
+   and return any resulting cookie or header effects explicitly.
 4. Consumers and services have a one-to-one mapping. Every data-using page, route
    handler, server action, or proxy imports exactly one dedicated service module.
    That service module is imported by exactly one production consumer. A consumer
@@ -100,8 +100,9 @@ src/
 
 The exact filenames may evolve with the use cases. We should not add generic base
 repositories, repository interfaces, or dependency-injection machinery until a
-real second adapter or test substitute makes that seam useful. Contexts should
-remain small and focused; they are not a place to build a global service locator.
+real second adapter or test substitute makes that seam useful. Context functions
+should remain small and focused; they are not a place to build a global service
+locator or request-scoped object graph.
 
 Example service interface:
 

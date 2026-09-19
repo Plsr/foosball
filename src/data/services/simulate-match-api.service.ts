@@ -1,7 +1,7 @@
 import type { RequestCookie } from "@/data/auth";
 import {
-  createRequestContext,
-  type RequestContext,
+  getCurrentViewer,
+  type CurrentViewerResult,
 } from "@/data/contexts/request.context";
 import {
   simulateMatch,
@@ -15,13 +15,13 @@ export type SimulateMatchApiResult =
   | { status: "unauthenticated" };
 
 type SimulateMatchApiDependencies = {
-  createRequestContext(input: {
+  getCurrentViewer(input: {
     cookies: readonly RequestCookie[];
-  }): Pick<RequestContext, "getCurrentViewer">;
+  }): Promise<CurrentViewerResult>;
 };
 
 const productionDependencies: SimulateMatchApiDependencies = {
-  createRequestContext,
+  getCurrentViewer,
 };
 
 export async function simulateMatchApi(
@@ -31,8 +31,7 @@ export async function simulateMatchApi(
   },
   dependencies: SimulateMatchApiDependencies = productionDependencies,
 ): Promise<SimulateMatchApiResult> {
-  const context = dependencies.createRequestContext(input);
-  const viewer = await context.getCurrentViewer();
+  const { viewer } = await dependencies.getCurrentViewer(input);
   if (!viewer) return { status: "unauthenticated" };
 
   let body: unknown;

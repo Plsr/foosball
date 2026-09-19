@@ -1,7 +1,8 @@
 import type { AuthEffects, RequestCookie } from "@/data/auth";
 import {
-  createRequestContext,
-  type RequestContext,
+  getCurrentViewer,
+  isAuthConfigured,
+  type CurrentViewerResult,
 } from "@/data/contexts/request.context";
 
 export type RequestAuthResult =
@@ -20,16 +21,15 @@ export type RequestAuthResult =
     };
 
 type RequestAuthDependencies = {
-  createRequestContext(input: {
+  getCurrentViewer(input: {
     cookies: readonly RequestCookie[];
-  }): Pick<
-    RequestContext,
-    "getAuthEffects" | "getCurrentViewer" | "isAuthConfigured"
-  >;
+  }): Promise<CurrentViewerResult>;
+  isAuthConfigured(): boolean;
 };
 
 const productionDependencies: RequestAuthDependencies = {
-  createRequestContext,
+  getCurrentViewer,
+  isAuthConfigured,
 };
 
 const publicPaths = ["/login", "/auth/", "/api/health"];
@@ -43,10 +43,8 @@ export async function authorizeRequest(
   },
   dependencies: RequestAuthDependencies = productionDependencies,
 ): Promise<RequestAuthResult> {
-  const context = dependencies.createRequestContext(input);
-
-  if (!context.isAuthConfigured()) {
-    const effects = context.getAuthEffects();
+  if (!dependencies.isAuthConfigured()) {
+    const effects: AuthEffects = { cookies: [], headers: [] };
     if (input.pathname === "/login" || input.pathname === "/api/health") {
       return { status: "allow", effects };
     }
@@ -68,8 +66,7 @@ export async function authorizeRequest(
     };
   }
 
-  const viewer = await context.getCurrentViewer();
-  const effects = context.getAuthEffects();
+  const { viewer, effects } = await dependencies.getCurrentViewer(input);
   const isPublic = isPublicPath(input.pathname);
 
   if (!viewer && !isPublic) {
