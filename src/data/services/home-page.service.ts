@@ -48,12 +48,14 @@ export async function getHomePageData(
     status: "ready",
     data: {
       viewerName: viewer.userName ?? viewer.email ?? "Manager",
-      teams: teams.map((team) => ({
-        slug: team.slug,
-        name: team.name,
-        location: `${team.city} · ${team.stadium}`,
-        foundedLabel: `Est. ${team.founded}`,
-      })),
+      teams: teams
+        .toSorted((left, right) => left.name.localeCompare(right.name))
+        .map((team) => ({
+          slug: team.slug,
+          name: team.name,
+          location: `${team.city} · ${team.stadium}`,
+          foundedLabel: `Est. ${team.founded}`,
+        })),
     },
   };
 }

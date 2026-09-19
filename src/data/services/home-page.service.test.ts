@@ -15,6 +15,13 @@ test("returns a consumer-shaped home page model", async () => {
       }),
       listTeams: async () => [
         {
+          slug: "zebra-fc",
+          name: "Zebra FC",
+          city: "Aarhus",
+          stadium: "Zebra Ground",
+          founded: 2001,
+        },
+        {
           slug: "fc-example",
           name: "FC Example",
           city: "Copenhagen",
@@ -35,6 +42,12 @@ test("returns a consumer-shaped home page model", async () => {
           name: "FC Example",
           location: "Copenhagen · Example Park",
           foundedLabel: "Est. 1901",
+        },
+        {
+          slug: "zebra-fc",
+          name: "Zebra FC",
+          location: "Aarhus · Zebra Ground",
+          foundedLabel: "Est. 2001",
         },
       ],
     },

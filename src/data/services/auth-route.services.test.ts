@@ -38,6 +38,23 @@ test("starts GitHub sign-in with a safe callback URL", async () => {
   });
 });
 
+test("returns to login when GitHub sign-in cannot start", async () => {
+  const result = await startGitHubSignIn(
+    { cookies: [], origin: "https://app.example.com", next: null },
+    {
+      createRequestContext: () => ({
+        getAuthEffects: () => effects,
+        startGitHubSignIn: async () => null,
+      }),
+    },
+  );
+
+  assert.deepEqual(result, {
+    destination: "https://app.example.com/login?error=oauth_start",
+    effects,
+  });
+});
+
 test("completes GitHub sign-in and preserves auth effects", async () => {
   const result = await completeGitHubSignIn(
     {
@@ -56,6 +73,28 @@ test("completes GitHub sign-in and preserves auth effects", async () => {
 
   assert.deepEqual(result, {
     destination: "https://app.example.com/career",
+    effects,
+  });
+});
+
+test("returns to login when the callback exchange fails", async () => {
+  const result = await completeGitHubSignIn(
+    {
+      code: "bad-code",
+      cookies: [],
+      next: "/career",
+      origin: "https://app.example.com",
+    },
+    {
+      createRequestContext: () => ({
+        completeGitHubSignIn: async () => false,
+        getAuthEffects: () => effects,
+      }),
+    },
+  );
+
+  assert.deepEqual(result, {
+    destination: "https://app.example.com/login?error=oauth_callback",
     effects,
   });
 });

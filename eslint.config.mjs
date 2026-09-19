@@ -10,6 +10,11 @@ const noRepositoryImports = {
   message: "Repositories cannot import other repositories.",
 };
 
+const noContextImports = {
+  group: ["@/data/contexts/*", "**/data/contexts/*"],
+  message: "Contexts are internal to services and other contexts.",
+};
+
 const noSourceInfrastructure = [
   {
     group: ["@/db/*", "@/lib/supabase/*"],
@@ -33,6 +38,14 @@ export default tseslint.config(
         ecmaVersion: "latest",
         sourceType: "module",
       },
+    },
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [noRepositoryImports, noContextImports, ...noSourceInfrastructure],
+        },
+      ],
     },
   },
   {
@@ -62,7 +75,16 @@ export default tseslint.config(
     rules: {
       "no-restricted-imports": [
         "error",
-        { patterns: [noServiceImports, noRepositoryImports] },
+        { patterns: [noServiceImports, noRepositoryImports, noContextImports] },
+      ],
+    },
+  },
+  {
+    files: ["src/db/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        { patterns: [noServiceImports, noRepositoryImports, noContextImports] },
       ],
     },
   },

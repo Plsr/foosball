@@ -23,6 +23,8 @@ const serviceConsumers = new Map(serviceFiles.map((file) => [file, [] as string[
 for (const [file, imports] of importsByFile) {
   const importedServices = imports.filter((dependency) => serviceSet.has(dependency));
   const importedRepositories = imports.filter((dependency) => repositorySet.has(dependency));
+  const importedContexts = imports.filter((dependency) => contextSet.has(dependency));
+  const importedSourceInfrastructure = imports.filter(isSourceInfrastructure);
 
   if (isProductionConsumer(file) && importedServices.length > 1) {
     errors.push(`${display(file)} imports more than one service: ${importedServices.map(display).join(", ")}`);
@@ -45,6 +47,20 @@ for (const [file, imports] of importsByFile) {
   for (const repository of importedRepositories) {
     if (!serviceSet.has(file) && !contextSet.has(file)) {
       errors.push(`${display(repository)} is imported outside a service or context by ${display(file)}`);
+    }
+  }
+
+  for (const context of importedContexts) {
+    if (!serviceSet.has(file) && !contextSet.has(file) && !isTestFile(file)) {
+      errors.push(`${display(context)} is imported outside a service or context by ${display(file)}`);
+    }
+  }
+
+  for (const infrastructure of importedSourceInfrastructure) {
+    if (!repositorySet.has(file) && !isSourceInfrastructure(file)) {
+      errors.push(
+        `${display(infrastructure)} is imported outside a repository by ${display(file)}`,
+      );
     }
   }
 
@@ -160,6 +176,10 @@ function hasDirective(file: string, directive: string): boolean {
 
 function isTestFile(file: string): boolean {
   return /\.(?:test|spec)\.[^.]+$/.test(file);
+}
+
+function isSourceInfrastructure(file: string): boolean {
+  return file.startsWith(join(sourceRoot, "db")) || file.startsWith(join(sourceRoot, "lib/supabase"));
 }
 
 function display(file: string): string {

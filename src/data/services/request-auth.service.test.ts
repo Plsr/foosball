@@ -54,6 +54,56 @@ test("rejects anonymous protected API requests", async () => {
   });
 });
 
+test("redirects anonymous page requests and preserves the requested path", async () => {
+  const result = await authorizeRequest(
+    {
+      cookies: [],
+      origin: "https://app.example.com",
+      pathname: "/career",
+      search: "?season=2",
+    },
+    {
+      createRequestContext: () => ({
+        getAuthEffects: () => noEffects,
+        getCurrentViewer: async () => null,
+        isAuthConfigured: () => true,
+      }),
+    },
+  );
+
+  assert.deepEqual(result, {
+    status: "redirect",
+    destination: "https://app.example.com/login?next=%2Fcareer%3Fseason%3D2",
+    responseStatus: 303,
+    effects: noEffects,
+  });
+});
+
+test("returns service unavailable for APIs when auth is not configured", async () => {
+  const result = await authorizeRequest(
+    {
+      cookies: [],
+      origin: "https://app.example.com",
+      pathname: "/api/matches/simulate",
+      search: "",
+    },
+    {
+      createRequestContext: () => ({
+        getAuthEffects: () => noEffects,
+        getCurrentViewer: async () => null,
+        isAuthConfigured: () => false,
+      }),
+    },
+  );
+
+  assert.deepEqual(result, {
+    status: "reject",
+    responseStatus: 503,
+    error: "Authentication is not configured",
+    effects: noEffects,
+  });
+});
+
 test("redirects an authenticated viewer away from login", async () => {
   const result = await authorizeRequest(
     {
