@@ -1,8 +1,15 @@
 import { simulateMatch, type Team } from "../../../../domain/match";
+import { getCurrentUser } from "@/lib/auth/user";
 
 type MatchRequest = { homeTeam: Team; awayTeam: Team; seed: number };
 
 export async function POST(request: Request) {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return Response.json({ error: "Authentication required" }, { status: 401 });
+  }
+
   let body: unknown;
 
   try {

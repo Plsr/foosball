@@ -83,3 +83,37 @@ them:
 ```bash
 pnpm db:migrate
 ```
+
+## GitHub sign-in
+
+Authentication uses Supabase Auth with GitHub OAuth and cookie-based SSR
+sessions. Add these public values to `.env.local` and to the Vercel project for
+the Preview, Development, and Production environments:
+
+```text
+NEXT_PUBLIC_SUPABASE_URL=https://PROJECT_REF.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_REPLACE_ME
+```
+
+In GitHub, create an OAuth App and use the Supabase provider callback—not this
+Next.js application's callback—as its **Authorization callback URL**:
+
+```text
+https://PROJECT_REF.supabase.co/auth/v1/callback
+```
+
+Copy the GitHub client ID and client secret into **Supabase Dashboard →
+Authentication → Providers → GitHub**, then enable the provider. In **Supabase
+Dashboard → Authentication → URL Configuration**, add every application
+callback that Supabase may redirect back to:
+
+```text
+http://localhost:3000/auth/callback
+https://YOUR_PRODUCTION_DOMAIN/auth/callback
+https://YOUR_VERCEL_PREVIEW_DOMAIN/auth/callback
+```
+
+Add the generated PR preview callback after Vercel publishes the deployment,
+or configure a suitably narrow Vercel preview wildcard in Supabase. Never put
+the GitHub client secret or a Supabase secret/service-role key in a
+`NEXT_PUBLIC_` variable.
