@@ -10,11 +10,11 @@ test("returns a deterministic match result for valid authenticated input", async
   const result = await simulateMatchApi(
     {
       cookies: [],
-      body: {
+      readBody: async () => ({
         homeTeam: { id: "home", name: "Home", strength: 70 },
         awayTeam: { id: "away", name: "Away", strength: 65 },
         seed: 42,
-      },
+      }),
     },
     { createRequestContext: authenticatedContext },
   );
@@ -34,8 +34,8 @@ test("returns a deterministic match result for valid authenticated input", async
 test("rejects an unauthenticated request", async () => {
   const result = await simulateMatchApi(
     {
-      body: {},
       cookies: [],
+      readBody: async () => ({}),
     },
     { createRequestContext: () => ({ getCurrentViewer: async () => null }) },
   );
@@ -46,9 +46,23 @@ test("rejects an unauthenticated request", async () => {
 test("rejects an invalid request body", async () => {
   const dependencies = { createRequestContext: authenticatedContext };
   const invalid = await simulateMatchApi(
-    { body: { seed: 42 }, cookies: [] },
+    { readBody: async () => ({ seed: 42 }), cookies: [] },
     dependencies,
   );
 
   assert.deepEqual(invalid, { status: "invalid-input" });
+});
+
+test("rejects malformed JSON after authenticating", async () => {
+  const result = await simulateMatchApi(
+    {
+      cookies: [],
+      readBody: async () => {
+        throw new SyntaxError("Malformed JSON");
+      },
+    },
+    { createRequestContext: authenticatedContext },
+  );
+
+  assert.deepEqual(result, { status: "invalid-input" });
 });

@@ -26,8 +26,8 @@ const productionDependencies: SimulateMatchApiDependencies = {
 
 export async function simulateMatchApi(
   input: {
-    body: unknown;
     cookies: readonly RequestCookie[];
+    readBody(): Promise<unknown>;
   },
   dependencies: SimulateMatchApiDependencies = productionDependencies,
 ): Promise<SimulateMatchApiResult> {
@@ -35,11 +35,18 @@ export async function simulateMatchApi(
   const viewer = await context.getCurrentViewer();
   if (!viewer) return { status: "unauthenticated" };
 
-  if (!isMatchRequest(input.body)) return { status: "invalid-input" };
+  let body: unknown;
+  try {
+    body = await input.readBody();
+  } catch {
+    return { status: "invalid-input" };
+  }
+
+  if (!isMatchRequest(body)) return { status: "invalid-input" };
 
   return {
     status: "success",
-    match: simulateMatch(input.body.homeTeam, input.body.awayTeam, input.body.seed),
+    match: simulateMatch(body.homeTeam, body.awayTeam, body.seed),
   };
 }
 
