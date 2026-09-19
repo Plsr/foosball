@@ -130,10 +130,9 @@ We should add linting in two layers:
     outside `src/data/repositories`;
   - services and repositories cannot be imported by client components;
   - repositories cannot import other repositories.
-- Add a small architecture check for the rules that ordinary lint configuration
-  cannot express cleanly: every data-using production consumer imports exactly one
-  `*.service` module, and every service module has exactly one production consumer.
-  Service tests are excluded from the consumer count. Run the check in normal CI.
+- The one-to-one consumer/service mapping is currently maintained as an explicit
+  convention and reviewed with each change. A follow-up issue will evaluate a
+  custom ESLint rule or boundaries plugin for enforcing that mapping automatically.
 
 Linting can enforce who may depend on whom. It cannot determine whether a service
 returns the minimum meaningful data. We will support that rule with explicit

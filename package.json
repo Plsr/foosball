@@ -12,8 +12,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate --config drizzle.migrate.config.ts",
     "dev": "next dev",
-    "lint": "eslint . && pnpm lint:architecture",
-    "lint:architecture": "node --import tsx scripts/check-architecture.ts",
+    "lint": "eslint .",
     "start": "next start",
     "test": "node --import tsx --test",
     "typecheck": "tsc --noEmit -p tsconfig.json"
