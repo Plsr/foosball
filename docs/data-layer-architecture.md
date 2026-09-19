@@ -131,8 +131,9 @@ We should add linting in two layers:
   - services and repositories cannot be imported by client components;
   - repositories cannot import other repositories.
 - The one-to-one consumer/service mapping is currently maintained as an explicit
-  convention and reviewed with each change. A follow-up issue will evaluate a
-  custom ESLint rule or boundaries plugin for enforcing that mapping automatically.
+  convention and reviewed with each change. [Issue #9](https://github.com/Plsr/foosball/issues/9)
+  will evaluate a custom ESLint rule or boundaries plugin for enforcing that mapping
+  automatically.
 
 Linting can enforce who may depend on whom. It cannot determine whether a service
 returns the minimum meaningful data. We will support that rule with explicit
