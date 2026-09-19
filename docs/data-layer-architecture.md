@@ -137,6 +137,7 @@ We should add linting in two layers:
 
 Linting can enforce who may depend on whom. It cannot determine whether a service
 returns the minimum meaningful data. We will support that rule with explicit
-service return types, service-interface tests, and code review. Enabling
-`@typescript-eslint/explicit-module-boundary-types` for service files would make
-accidental type leakage easier to spot.
+service return types, service-interface tests, and code review. Service-interface
+test coverage is tracked in [Issue #10](https://github.com/Plsr/foosball/issues/10).
+Enabling `@typescript-eslint/explicit-module-boundary-types` for service files would
+make accidental type leakage easier to spot.
