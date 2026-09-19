@@ -1,8 +1,13 @@
-import { getTeams } from "@/db/queries";
+type TeamListProps = {
+  teams: Array<{
+    slug: string;
+    name: string;
+    location: string;
+    foundedLabel: string;
+  }>;
+};
 
-export async function TeamList() {
-  const teams = await getTeams();
-
+export function TeamList({ teams }: TeamListProps) {
   return (
     <section
       className="mx-auto mb-14 w-full max-w-[880px] border-t border-line pt-8"
@@ -28,12 +33,10 @@ export async function TeamList() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="font-bold">{team.name}</h3>
-                <p className="mt-1 text-sm text-muted">
-                  {team.city} · {team.stadium}
-                </p>
+                <p className="mt-1 text-sm text-muted">{team.location}</p>
               </div>
               <span className="font-mono text-[10px] tracking-[0.08em] text-note uppercase">
-                Est. {team.founded}
+                {team.foundedLabel}
               </span>
             </div>
           </li>
