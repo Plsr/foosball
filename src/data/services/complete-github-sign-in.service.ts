@@ -1,7 +1,8 @@
 import type { AuthEffects, RequestCookie } from "@/data/auth";
 import {
-  createAuthRepository,
-  type AuthRepository,
+  AuthRepository,
+  type AuthRepositoryRequest,
+  type AuthRepositoryResult,
 } from "@/data/repositories/auth.repository";
 import { getSafeNextPath } from "@/lib/auth/redirect";
 
@@ -11,14 +12,13 @@ export type CompleteGitHubSignInResult = {
 };
 
 type CompleteGitHubSignInDependencies = {
-  createAuthRepository(cookies: readonly RequestCookie[]): Pick<
-    AuthRepository,
-    "completeGitHubSignIn" | "getEffects"
-  >;
+  completeGitHubSignIn(
+    input: AuthRepositoryRequest & { code: string },
+  ): Promise<AuthRepositoryResult<boolean>>;
 };
 
 const productionDependencies: CompleteGitHubSignInDependencies = {
-  createAuthRepository,
+  completeGitHubSignIn: AuthRepository.completeGitHubSignIn,
 };
 
 export async function completeGitHubSignIn(
@@ -30,16 +30,19 @@ export async function completeGitHubSignIn(
   },
   dependencies: CompleteGitHubSignInDependencies = productionDependencies,
 ): Promise<CompleteGitHubSignInResult> {
-  const auth = dependencies.createAuthRepository(input.cookies);
-  const completed = input.code
-    ? await auth.completeGitHubSignIn(input.code)
-    : false;
+  const result = input.code
+    ? await dependencies.completeGitHubSignIn({
+        code: input.code,
+        cookies: input.cookies,
+      })
+    : { value: false, effects: { cookies: [], headers: [] } };
+  const completed = result.value;
   const destination = completed
     ? new URL(getSafeNextPath(input.next), input.origin)
     : new URL("/login?error=oauth_callback", input.origin);
 
   return {
     destination: destination.toString(),
-    effects: auth.getEffects(),
+    effects: result.effects,
   };
 }

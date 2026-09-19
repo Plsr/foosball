@@ -1,7 +1,8 @@
 import type { AuthEffects, RequestCookie } from "@/data/auth";
 import {
-  createAuthRepository,
-  type AuthRepository,
+  AuthRepository,
+  type AuthRepositoryRequest,
+  type AuthRepositoryResult,
 } from "@/data/repositories/auth.repository";
 
 export type SignOutResult = {
@@ -10,25 +11,23 @@ export type SignOutResult = {
 };
 
 type SignOutDependencies = {
-  createAuthRepository(cookies: readonly RequestCookie[]): Pick<
-    AuthRepository,
-    "getEffects" | "signOut"
-  >;
+  signOut(
+    input: AuthRepositoryRequest,
+  ): Promise<AuthRepositoryResult<void>>;
 };
 
 const productionDependencies: SignOutDependencies = {
-  createAuthRepository,
+  signOut: AuthRepository.signOut,
 };
 
 export async function signOut(
   input: { cookies: readonly RequestCookie[]; origin: string },
   dependencies: SignOutDependencies = productionDependencies,
 ): Promise<SignOutResult> {
-  const auth = dependencies.createAuthRepository(input.cookies);
-  await auth.signOut();
+  const result = await dependencies.signOut({ cookies: input.cookies });
 
   return {
     destination: new URL("/login", input.origin).toString(),
-    effects: auth.getEffects(),
+    effects: result.effects,
   };
 }

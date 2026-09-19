@@ -10,15 +10,21 @@ export type TeamRecord = {
   founded: number;
 };
 
-export async function listTeams(): Promise<TeamRecord[]> {
-  return getDatabase()
-    .select({
-      slug: teams.slug,
-      name: teams.name,
-      city: teams.city,
-      stadium: teams.stadium,
-      founded: teams.founded,
-    })
-    .from(teams)
-    .orderBy(asc(teams.name));
+export class TeamRepository {
+  private constructor() {
+    throw new Error("TeamRepository cannot be instantiated");
+  }
+
+  static async listTeams(): Promise<TeamRecord[]> {
+    return getDatabase()
+      .select({
+        slug: teams.slug,
+        name: teams.name,
+        city: teams.city,
+        stadium: teams.stadium,
+        founded: teams.founded,
+      })
+      .from(teams)
+      .orderBy(asc(teams.name));
+  }
 }

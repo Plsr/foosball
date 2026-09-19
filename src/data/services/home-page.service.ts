@@ -4,7 +4,7 @@ import {
   type RequestContext,
 } from "@/data/contexts/request.context";
 import {
-  listTeams,
+  TeamRepository,
   type TeamRecord,
 } from "@/data/repositories/team.repository";
 
@@ -31,7 +31,7 @@ type HomePageDependencies = {
 
 const productionDependencies: HomePageDependencies = {
   createRequestContext,
-  listTeams,
+  listTeams: TeamRepository.listTeams,
 };
 
 export async function getHomePageData(

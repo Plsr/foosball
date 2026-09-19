@@ -3,33 +3,94 @@ import { getSupabaseConfig, isSupabaseConfigured } from "@/lib/supabase/config";
 import type {
   AuthEffects,
   CookieMutation,
-  HeaderMutation,
   RequestCookie,
   Viewer,
 } from "@/data/auth";
 
-export type AuthRepository = {
-  completeGitHubSignIn(code: string): Promise<boolean>;
-  getCurrentViewer(): Promise<Viewer | null>;
-  getEffects(): AuthEffects;
-  isConfigured(): boolean;
-  signOut(): Promise<void>;
-  startGitHubSignIn(redirectTo: string): Promise<string | null>;
+export type AuthRepositoryRequest = {
+  cookies: readonly RequestCookie[];
 };
 
-export function createAuthRepository(
-  requestCookies: readonly RequestCookie[],
-): AuthRepository {
-  const cookies = new Map(requestCookies.map(({ name, value }) => [name, value]));
-  const cookieMutations: CookieMutation[] = [];
-  const headers = new Map<string, string>();
-  let client: ReturnType<typeof createServerClient> | undefined;
+export type AuthRepositoryResult<T> = {
+  value: T;
+  effects: AuthEffects;
+};
 
-  function getClient(): ReturnType<typeof createServerClient> {
-    if (client) return client;
+export class AuthRepository {
+  private constructor() {
+    throw new Error("AuthRepository cannot be instantiated");
+  }
 
+  static isConfigured(): boolean {
+    return isSupabaseConfigured();
+  }
+
+  static async completeGitHubSignIn(
+    input: AuthRepositoryRequest & { code: string },
+  ): Promise<AuthRepositoryResult<boolean>> {
+    const effects = createEffects();
+    if (!isSupabaseConfigured()) return { value: false, effects };
+
+    const { error } = await AuthRepository.createClient(input.cookies, effects).auth.exchangeCodeForSession(
+      input.code,
+    );
+    return { value: !error, effects };
+  }
+
+  static async getCurrentViewer(
+    input: AuthRepositoryRequest,
+  ): Promise<AuthRepositoryResult<Viewer | null>> {
+    const effects = createEffects();
+    if (!isSupabaseConfigured()) return { value: null, effects };
+
+    const { data, error } = await AuthRepository.createClient(input.cookies, effects).auth.getUser();
+    if (error || !data.user) return { value: null, effects };
+
+    const { user } = data;
+    return {
+      value: {
+        id: user.id,
+        email: user.email ?? null,
+        userName:
+          typeof user.user_metadata.user_name === "string"
+            ? user.user_metadata.user_name
+            : null,
+      },
+      effects,
+    };
+  }
+
+  static async signOut(
+    input: AuthRepositoryRequest,
+  ): Promise<AuthRepositoryResult<void>> {
+    const effects = createEffects();
+    if (isSupabaseConfigured()) {
+      await AuthRepository.createClient(input.cookies, effects).auth.signOut({ scope: "local" });
+    }
+    return { value: undefined, effects };
+  }
+
+  static async startGitHubSignIn(
+    input: AuthRepositoryRequest & { redirectTo: string },
+  ): Promise<AuthRepositoryResult<string | null>> {
+    const effects = createEffects();
+    if (!isSupabaseConfigured()) return { value: null, effects };
+
+    const { data, error } = await AuthRepository.createClient(input.cookies, effects).auth.signInWithOAuth({
+      provider: "github",
+      options: { redirectTo: input.redirectTo },
+    });
+    return { value: error ? null : data.url, effects };
+  }
+
+  private static createClient(
+    requestCookies: readonly RequestCookie[],
+    effects: AuthEffects,
+  ): ReturnType<typeof createServerClient> {
+    const cookies = new Map(requestCookies.map(({ name, value }) => [name, value]));
     const { url, publishableKey } = getSupabaseConfig();
-    client = createServerClient(url, publishableKey, {
+
+    return createServerClient(url, publishableKey, {
       cookies: {
         getAll() {
           return [...cookies].map(([name, value]) => ({ name, value }));
@@ -37,68 +98,29 @@ export function createAuthRepository(
         setAll(cookiesToSet, headersToSet) {
           for (const cookie of cookiesToSet) {
             cookies.set(cookie.name, cookie.value);
-            cookieMutations.push(toCookieMutation(cookie));
+            effects.cookies.push(toCookieMutation(cookie));
           }
 
           for (const [name, value] of Object.entries(headersToSet)) {
-            headers.set(name, value);
+            setHeaderEffect(effects, name, value);
           }
         },
       },
     });
-
-    return client;
   }
+}
 
-  return {
-    async completeGitHubSignIn(code) {
-      if (!isSupabaseConfigured()) return false;
-      const { error } = await getClient().auth.exchangeCodeForSession(code);
-      return !error;
-    },
+function createEffects(): AuthEffects {
+  return { cookies: [], headers: [] };
+}
 
-    async getCurrentViewer() {
-      if (!isSupabaseConfigured()) return null;
-
-      const { data, error } = await getClient().auth.getUser();
-      if (error || !data.user) return null;
-
-      const { user } = data;
-      return {
-        id: user.id,
-        email: user.email ?? null,
-        userName:
-          typeof user.user_metadata.user_name === "string"
-            ? user.user_metadata.user_name
-            : null,
-      };
-    },
-
-    getEffects() {
-      const headerMutations: HeaderMutation[] = [...headers].map(([name, value]) => ({
-        name,
-        value,
-      }));
-      return { cookies: [...cookieMutations], headers: headerMutations };
-    },
-
-    isConfigured: isSupabaseConfigured,
-
-    async signOut() {
-      if (!isSupabaseConfigured()) return;
-      await getClient().auth.signOut({ scope: "local" });
-    },
-
-    async startGitHubSignIn(redirectTo) {
-      if (!isSupabaseConfigured()) return null;
-
-      const { data, error } = await getClient().auth.signInWithOAuth({
-        provider: "github",
-        options: { redirectTo },
-      });
-      return error ? null : data.url;
-    },
-  };
+function setHeaderEffect(effects: AuthEffects, name: string, value: string): void {
+  const existing = effects.headers.find((header) => header.name === name);
+  if (existing) {
+    existing.value = value;
+  } else {
+    effects.headers.push({ name, value });
+  }
 }
 
 function toCookieMutation(cookie: {

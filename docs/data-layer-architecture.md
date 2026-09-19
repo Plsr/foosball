@@ -28,6 +28,11 @@ case: it coordinates repositories and domain logic, handles data-related decisio
 and returns a purpose-built result. Repository files are internal adapters for a
 specific data source. Context objects are internal service-layer collaborators for
 shared, request-scoped concerns such as resolving the currently logged-in user.
+Repositories are non-instantiable classes with throwing constructors and static
+operations. Consumers call those operations directly (for example,
+`TeamRepository.listTeams()`); repositories do not expose setup or factory functions.
+When an operation needs request-scoped state, that state is passed into the static
+operation and returned effects accompany its result.
 
 ### Rules
 
