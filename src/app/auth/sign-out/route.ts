@@ -1,11 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createRequestClient } from "@/lib/supabase/request";
+import { applyAuthEffects } from "@/app/auth-response";
+import { signOut } from "@/data/services/sign-out.service";
 
 export async function POST(request: NextRequest) {
-  const auth = createRequestClient(request);
-  await auth.supabase.auth.signOut({ scope: "local" });
+  const result = await signOut({
+    cookies: request.cookies.getAll(),
+    origin: request.nextUrl.origin,
+  });
 
-  return auth.applyTo(
-    NextResponse.redirect(new URL("/login", request.nextUrl.origin), 303),
+  return applyAuthEffects(
+    NextResponse.redirect(result.destination, 303),
+    result.effects,
   );
 }

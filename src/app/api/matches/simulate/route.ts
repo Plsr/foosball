@@ -1,40 +1,19 @@
-import { simulateMatch, type Team } from "../../../../domain/match";
-import { getCurrentUser } from "@/lib/auth/user";
+import type { NextRequest } from "next/server";
+import { simulateMatchApi } from "@/data/services/simulate-match-api.service";
 
-type MatchRequest = { homeTeam: Team; awayTeam: Team; seed: number };
+export async function POST(request: NextRequest) {
+  const result = await simulateMatchApi({
+    cookies: request.cookies.getAll(),
+    readBody: () => request.json(),
+  });
 
-export async function POST(request: Request) {
-  const user = await getCurrentUser();
-
-  if (!user) {
+  if (result.status === "unauthenticated") {
     return Response.json({ error: "Authentication required" }, { status: 401 });
   }
 
-  let body: unknown;
-
-  try {
-    body = await request.json();
-  } catch {
+  if (result.status === "invalid-input") {
     return Response.json({ error: "Invalid match input" }, { status: 400 });
   }
 
-  if (!isMatchRequest(body)) {
-    return Response.json({ error: "Invalid match input" }, { status: 400 });
-  }
-
-  return Response.json(simulateMatch(body.homeTeam, body.awayTeam, body.seed));
-}
-
-function isMatchRequest(value: unknown): value is MatchRequest {
-  if (!value || typeof value !== "object") return false;
-
-  const request = value as Record<string, unknown>;
-  return isTeam(request.homeTeam) && isTeam(request.awayTeam) && Number.isFinite(request.seed);
-}
-
-function isTeam(value: unknown): value is Team {
-  if (!value || typeof value !== "object") return false;
-
-  const team = value as Record<string, unknown>;
-  return typeof team.id === "string" && typeof team.name === "string" && typeof team.strength === "number";
+  return Response.json(result.match);
 }

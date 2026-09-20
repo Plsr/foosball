@@ -1,23 +1,11 @@
-import { getSafeNextPath } from "@/lib/auth/redirect";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
-
-const errorMessages: Record<string, string> = {
-  configuration: "Supabase Auth has not been configured for this deployment yet.",
-  oauth_callback: "GitHub could not complete the sign-in. Please try again.",
-  oauth_start: "GitHub sign-in could not be started. Please try again.",
-};
+import { getLoginPageData } from "@/data/services/login-page.service";
 
 type LoginPageProps = {
   searchParams: Promise<{ error?: string; next?: string }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const configured = isSupabaseConfigured();
-  const { error, next: requestedNext } = await searchParams;
-  const errorMessage = error ? errorMessages[error] : undefined;
-  const next = getSafeNextPath(requestedNext ?? null);
-  const signInAction =
-    next === "/" ? "/auth/sign-in" : `/auth/sign-in?next=${encodeURIComponent(next)}`;
+  const data = getLoginPageData(await searchParams);
 
   return (
     <main className="relative grid min-h-screen place-items-center px-5 py-10">
@@ -45,19 +33,19 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           Sign in with GitHub to start building your football story.
         </p>
 
-        {errorMessage ? (
+        {data.errorMessage ? (
           <p
             role="alert"
             className="mt-6 rounded-sm border border-red-400/30 bg-red-400/10 px-4 py-3 text-sm leading-6 text-red-100"
           >
-            {errorMessage}
+            {data.errorMessage}
           </p>
         ) : null}
 
-        <form action={signInAction} method="post" className="mt-8">
+        <form action={data.signInAction} method="post" className="mt-8">
           <button
             type="submit"
-            disabled={!configured}
+            disabled={!data.configured}
             className="flex w-full cursor-pointer items-center justify-between rounded-sm bg-lime px-5 py-[18px] text-[15px] font-extrabold text-night transition-[transform,box-shadow] duration-200 hover:not-disabled:-translate-y-0.5 hover:not-disabled:shadow-[0_9px_28px_rgba(200,255,70,0.16)] focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-45 motion-reduce:transition-none"
           >
             <span className="flex items-center gap-3">

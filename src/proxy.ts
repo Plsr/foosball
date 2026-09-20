@@ -1,59 +1,34 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { createRequestClient } from "@/lib/supabase/request";
-
-const publicPaths = ["/login", "/auth/", "/api/health"];
-
-function isPublicPath(pathname: string): boolean {
-  return publicPaths.some((path) =>
-    path.endsWith("/") ? pathname.startsWith(path) : pathname === path,
-  );
-}
+import {
+  applyAuthCookiesToRequest,
+  applyAuthEffects,
+} from "@/app/auth-response";
+import { authorizeRequest } from "@/data/services/request-auth.service";
 
 export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const isPublic = isPublicPath(pathname);
+  const result = await authorizeRequest({
+    cookies: request.cookies.getAll(),
+    origin: request.nextUrl.origin,
+    pathname: request.nextUrl.pathname,
+    search: request.nextUrl.search,
+  });
 
-  if (!isSupabaseConfigured()) {
-    if (pathname === "/login" || pathname === "/api/health") {
-      return NextResponse.next();
-    }
-
-    if (pathname.startsWith("/api/")) {
-      return NextResponse.json(
-        { error: "Authentication is not configured" },
-        { status: 503 },
-      );
-    }
-
-    return NextResponse.redirect(
-      new URL("/login?error=configuration", request.url),
-      303,
+  if (result.status === "reject") {
+    return applyAuthEffects(
+      NextResponse.json({ error: result.error }, { status: result.responseStatus }),
+      result.effects,
     );
   }
 
-  const auth = createRequestClient(request);
-  const {
-    data: { user },
-  } = await auth.supabase.auth.getUser();
-
-  if (!user && !isPublic) {
-    if (pathname.startsWith("/api/")) {
-      return auth.applyTo(
-        NextResponse.json({ error: "Authentication required" }, { status: 401 }),
-      );
-    }
-
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
-    return auth.applyTo(NextResponse.redirect(loginUrl, 303));
+  if (result.status === "redirect") {
+    const response = result.responseStatus
+      ? NextResponse.redirect(result.destination, result.responseStatus)
+      : NextResponse.redirect(result.destination);
+    return applyAuthEffects(response, result.effects);
   }
 
-  if (user && pathname === "/login") {
-    return auth.applyTo(NextResponse.redirect(new URL("/", request.url)));
-  }
-
-  return auth.applyTo(NextResponse.next({ request }));
+  applyAuthCookiesToRequest(request, result.effects);
+  return applyAuthEffects(NextResponse.next({ request }), result.effects);
 }
 
 export const config = {
