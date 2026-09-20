@@ -39,8 +39,6 @@ Open `http://localhost:3000` and use **Simulate match** to generate a score. The
 page invokes the framework-independent simulation module through a server action;
 the same module can be imported by a future API route without moving game logic.
 
-Run the simulation checks with `pnpm test`.
-
 ## Database
 
 Copy `.env.example` to `.env.local`. Use a least-privileged `foosball_app`

@@ -1,15 +1,18 @@
 import { Simulator } from "./simulator";
 import { TeamList } from "./team-list";
-import { requireUser } from "@/lib/auth/user";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { getHomePageData } from "@/data/services/home-page.service";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const user = await requireUser();
-  const displayName =
-    typeof user.user_metadata.user_name === "string"
-      ? user.user_metadata.user_name
-      : user.email ?? "Manager";
+  const cookieStore = await cookies();
+  const result = await getHomePageData({ cookies: cookieStore.getAll() });
+
+  if (result.status === "unauthenticated") {
+    redirect("/login");
+  }
 
   return (
     <main className="flex min-h-screen flex-col px-5 pt-7 pb-6 min-[601px]:px-[5vw]">
@@ -25,7 +28,7 @@ export default async function Home() {
         </span>
         <div className="ml-auto flex items-center gap-2">
           <span className="hidden max-w-44 truncate text-muted normal-case min-[601px]:inline">
-            {displayName}
+            {result.data.viewerName}
           </span>
           <form action="/auth/sign-out" method="post">
             <button
@@ -38,7 +41,7 @@ export default async function Home() {
         </div>
       </nav>
       <Simulator />
-      <TeamList />
+      <TeamList teams={result.data.teams} />
       <footer className="text-center font-mono text-[10px] leading-none tracking-[0.08em] text-footer uppercase">
         Built to test the model, not predict the weekend.
       </footer>

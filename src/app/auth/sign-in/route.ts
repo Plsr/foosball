@@ -1,22 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createRequestClient } from "@/lib/supabase/request";
+import { applyAuthEffects } from "@/app/auth-response";
+import { startGitHubSignIn } from "@/data/services/start-github-sign-in.service";
 
 export async function POST(request: NextRequest) {
-  const auth = createRequestClient(request);
-  const callbackUrl = new URL("/auth/callback", request.nextUrl.origin);
-  const next = request.nextUrl.searchParams.get("next");
-
-  if (next) {
-    callbackUrl.searchParams.set("next", next);
-  }
-
-  const { data, error } = await auth.supabase.auth.signInWithOAuth({
-    provider: "github",
-    options: { redirectTo: callbackUrl.toString() },
+  const result = await startGitHubSignIn({
+    cookies: request.cookies.getAll(),
+    origin: request.nextUrl.origin,
+    next: request.nextUrl.searchParams.get("next"),
   });
 
-  const destination =
-    error || !data.url ? new URL("/login?error=oauth_start", request.url) : data.url;
-
-  return auth.applyTo(NextResponse.redirect(destination, 303));
+  return applyAuthEffects(NextResponse.redirect(result.destination, 303), result.effects);
 }
