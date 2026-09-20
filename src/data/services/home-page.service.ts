@@ -12,6 +12,8 @@ export type HomePageData = {
     name: string;
     location: string;
     foundedLabel: string;
+    league: string;
+    rating: number;
   }>;
 };
 
@@ -49,6 +51,8 @@ export async function getHomePageData(
           name: team.name,
           location: `${team.city} · ${team.stadium}`,
           foundedLabel: `Est. ${team.founded}`,
+          league: team.league,
+          rating: team.rating,
         })),
     },
   };

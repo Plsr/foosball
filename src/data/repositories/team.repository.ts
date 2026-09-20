@@ -1,6 +1,6 @@
-import { asc } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { getDatabase } from "@/db/client";
-import { teams } from "@/db/schema";
+import { leagues, teams } from "@/db/schema";
 
 export type TeamRecord = {
   slug: string;
@@ -8,6 +8,8 @@ export type TeamRecord = {
   city: string;
   stadium: string;
   founded: number;
+  rating: number;
+  league: string;
 };
 
 export class TeamRepository {
@@ -23,8 +25,11 @@ export class TeamRepository {
         city: teams.city,
         stadium: teams.stadium,
         founded: teams.founded,
+        rating: teams.rating,
+        league: leagues.name,
       })
       .from(teams)
+      .innerJoin(leagues, eq(teams.leagueId, leagues.id))
       .orderBy(asc(teams.name));
   }
 }
