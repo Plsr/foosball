@@ -4,6 +4,8 @@ type TeamListProps = {
     name: string;
     location: string;
     foundedLabel: string;
+    league: string;
+    rating: number;
   }>;
 };
 
@@ -34,6 +36,9 @@ export function TeamList({ teams }: TeamListProps) {
               <div>
                 <h3 className="font-bold">{team.name}</h3>
                 <p className="mt-1 text-sm text-muted">{team.location}</p>
+                <p className="mt-1 font-mono text-[10px] tracking-[0.08em] text-note uppercase">
+                  {team.league} · Rating {team.rating}
+                </p>
               </div>
               <span className="font-mono text-[10px] tracking-[0.08em] text-note uppercase">
                 {team.foundedLabel}
